@@ -5,31 +5,38 @@ from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, filte
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN not found! Set it in Render Environment Variables.")
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not update.message:
+        return
+
     url = update.message.text
 
-    if "http" not in url:
+    if not url.startswith("http"):
         await update.message.reply_text("Please send a valid link.")
         return
 
     await update.message.reply_text("Downloading... ⏳")
 
     try:
-        response = requests.get(url, stream=True)
-        filename = url.split("/")[-1]
+        response = requests.get(url, timeout=10)
 
-        with open(filename, "wb") as f:
-            for chunk in response.iter_content(8192):
-                f.write(chunk)
+        if response.status_code == 200:
+            await update.message.reply_text("Link received ✅")
+        else:
+            await update.message.reply_text("Failed to access link ❌")
 
-        await update.message.reply_document(document=open(filename, "rb"))
-        os.remove(filename)
+    except Exception as e:
+        await update.message.reply_text("Error while processing link ❌")
 
-    except Exception:
-        await update.message.reply_text("Download failed ❌")
+def main():
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-app = ApplicationBuilder().token(BOT_TOKEN).build()
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    print("Bot is running...")
+    app.run_polling()
 
-print("Bot is running...")
-app.run_polling()
+if __name__ == "__main__":
+    main()
