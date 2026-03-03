@@ -1,10 +1,10 @@
 import os
 import logging
 import requests
-import threading
 from flask import Flask
 from telegram import Update
 from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
+from threading import Thread
 
 # ================== Flask Web Server ==================
 
@@ -15,15 +15,18 @@ def home():
     return "Bot is running!"
 
 def run_web():
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 10000))  # Heroku ya koi bhi platform pe port ka setup
     app.run(host="0.0.0.0", port=port)
 
 # Flask ko background thread me start karo
-threading.Thread(target=run_web).start()
+def start_flask():
+    thread = Thread(target=run_web)
+    thread.daemon = True
+    thread.start()
 
 # ================== Telegram Bot ==================
 
-TOKEN = os.environ.get("8755130382:AAGPcpzPYTmuBHew5bJE55Adqv46cWhx3Qc")
+TOKEN = os.environ.get("8755130382:AAGPcpzPYTmuBHew5bJE55Adqv46cWhx3Qc")  # Use environment variable for security
 MAX_SIZE = 2 * 1024 * 1024 * 1024  # 2GB limit
 
 logging.basicConfig(level=logging.INFO)
@@ -69,8 +72,12 @@ def handle(update: Update, context: CallbackContext):
 
     except Exception as e:
         update.message.reply_text("Error occurred ❌")
+        logging.error(f"Error: {e}")
 
 def main():
+    start_flask()  # Flask app ko start karo
+
+    # Telegram bot setup
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle))
