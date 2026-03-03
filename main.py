@@ -26,7 +26,7 @@ def start_flask():
 
 # ================== Telegram Bot ==================
 
-TOKEN = os.environ.get("8755130382:AAGPcpzPYTmuBHew5bJE55Adqv46cWhx3Qc")  # Use environment variable for security
+TOKEN = os.environ.get("")  # Use environment variable for security
 MAX_SIZE = 2 * 1024 * 1024 * 1024  # 2GB limit
 
 logging.basicConfig(level=logging.INFO)
