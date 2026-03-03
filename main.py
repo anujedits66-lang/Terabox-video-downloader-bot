@@ -1,8 +1,27 @@
 import os
 import logging
 import requests
+import threading
+from flask import Flask
 from telegram import Update
 from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
+
+# ================== Flask Web Server ==================
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Bot is running!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+
+# Flask ko background thread me start karo
+threading.Thread(target=run_web).start()
+
+# ================== Telegram Bot ==================
 
 TOKEN = os.environ.get("BOT_TOKEN")
 MAX_SIZE = 2 * 1024 * 1024 * 1024  # 2GB limit
@@ -48,7 +67,7 @@ def handle(update: Update, context: CallbackContext):
 
         update.message.reply_text("Done ✅")
 
-    except Exception:
+    except Exception as e:
         update.message.reply_text("Error occurred ❌")
 
 def main():
