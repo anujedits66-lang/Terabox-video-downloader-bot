@@ -1,7 +1,11 @@
 import os
-import requests
+import aiohttp
+import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, ContextTypes, CommandHandler, filters
+
+# Configure logging
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
@@ -26,14 +30,27 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Downloading... ⏳")
 
     try:
-        response = requests.get(url, timeout=10)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=10) as response:
+                if response.status == 200:
+                    await update.message.reply_text("Link received ✅")
+                else:
+                    await update.message.reply_text(f"Failed to access link. Status code: {response.status} ❌")
+    except aiohttp.ClientError as e:
+        logging.error(f"Request failed: {e}")
+        await update.message.reply_text("Error while processing link ❌")
 
-        if response.status_code == 200:
-            await update.message.reply_text("Link received ✅")
-        else:
-            await update.message.reply_text("Failed to access link ❌")
+def main():
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-    except Exception:
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    logging.info("Bot is running...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
         await update.message.reply_text("Error while processing link ❌")
 
 def main():
