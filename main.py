@@ -15,7 +15,7 @@ def home():
     return "Bot is running!"
 
 def run_web():
-    port = int(os.environ.get("PORT", 10000))  # Heroku ya koi bhi platform pe port ka setup
+    port = int(os.environ.get("PORT", 10000))  # Dynamically fetch the port if running on a cloud provider
     app.run(host="0.0.0.0", port=port)
 
 # Flask ko background thread me start karo
@@ -26,8 +26,8 @@ def start_flask():
 
 # ================== Telegram Bot ==================
 
-TOKEN = os.environ.get("")  # Use environment variable for security
-MAX_SIZE = 2 * 1024 * 1024 * 1024  # 2GB limit
+TOKEN = "8755130382:AAF9jzZEYZkoBiKTFFcqIQUaZO3GFL7QL_A"  # Your Telegram Bot Token directly added here
+MAX_SIZE = 50 * 1024 * 1024  # 50MB limit for Telegram file uploads
 
 logging.basicConfig(level=logging.INFO)
 
@@ -51,13 +51,13 @@ def handle(update: Update, context: CallbackContext):
         file_size = int(r.headers.get("content-length", 0))
 
         if file_size > MAX_SIZE:
-            update.message.reply_text("File larger than 2GB ❌ Telegram limit.")
+            update.message.reply_text("File larger than 50MB ❌ Telegram limit.")
             return
 
         file_name = url.split("/")[-1] or "file"
 
         with open(file_name, "wb") as f:
-            for chunk in r.iter_content(1024 * 1024):
+            for chunk in r.iter_content(1024 * 1024):  # 1MB chunks
                 if chunk:
                     f.write(chunk)
 
