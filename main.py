@@ -23,7 +23,7 @@ threading.Thread(target=run_web).start()
 
 # ================== Telegram Bot ==================
 
-TOKEN = os.environ.get("BOT_TOKEN")
+TOKEN = os.environ.get("8755130382:AAGPcpzPYTmuBHew5bJE55Adqv46cWhx3Qc")
 MAX_SIZE = 2 * 1024 * 1024 * 1024  # 2GB limit
 
 logging.basicConfig(level=logging.INFO)
